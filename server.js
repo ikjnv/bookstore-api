@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const multer = require("multer");
+const path = require('path');
 var upload = multer({
 	storage: multer.diskStorage({
 		destination: function(req, file, cb) {
@@ -22,6 +23,8 @@ mongoose.connect("mongodb://localhost:27017/bookData", {useNewUrlParser: true, u
 	.catch(err => console.log(err));
 
 app.use(cors());
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.get("/", function(req, res) {
 	res.send("Welcome to our bookstore library!");
 });
