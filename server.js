@@ -1,19 +1,29 @@
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
+const bodyParser = require("body-parser");
+const cors = require("cors");
 const multer = require("multer");
-const upload = multer();
+var upload = multer({ storage: storage });
 const PORT = process.env.PORT || 8000;
 const Book = require("./models/Book");
 
-mongoose.connect("mongodb://localhost:27017/bookstore", {useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connect("mongodb://localhost:27017/bookData", {useNewUrlParser: true, useUnifiedTopology: true})
+	.then(() => console.log ('Database Connection Success'))
+	.catch(err => console.log(err));
 
-const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', function() {
-  console.log("CONNECTED!");	
+var storage = multer.diskStorage({
+	destination: function(req, file, cb) {
+		cb(null, '/uploads');
+	},
+	filename: function(req, file, cb) {
+		// const uniqueSuffix = Date.now() + '-' + file.fieldname + '.' + ftype;
+		cb(null, req.file.originalname);
+	}
 });
 
+
+app.use(cors());
 app.get("/", function(req, res) {
 	res.send("Welcome to our bookstore library!");
 });
@@ -29,8 +39,8 @@ app.get("/v1/books", function(req, res) {
 		})
 });
 
-app.post("/v1/book1", upload.none(), function(req, res) {
-	Book.create({ title: req.body.title, author: req.body.author, description: req.body.descriptin, category: req.body.category  }, function(err, data) {
+app.get("/v1/books/:id", function(req, res) {
+	Book.findById({ _id: req.params.id }, function(err, data) {
 		if(err) {
 			res.json(err);
 		} else {
@@ -38,5 +48,26 @@ app.post("/v1/book1", upload.none(), function(req, res) {
 		}
 	});
 });
+
+app.use(bodyParser.json());
+app.post("/v1/books", upload.single('picture'), function(req, res) {
+	Book.create({ title: req.body.title, author: req.body.author, description: req.body.description, category: req.body.category, img_path: (`${req.file.path}/${req.file.originalname}`)}, function(err, data) {
+		if(err) {
+			res.json(err);
+		} else {
+			res.json({ status: 200, data: data });
+		}
+	});
+});
+
+app.delete("/v1/books/:id", function(req, res) {
+	Book.findByIdAndDelete({ _id: req.params.id }, function(err, data) {
+		if(err) {
+			res.json(err);
+		} else {
+			res.json({ status: 200, message: "Deleted successfully", data: data });
+		}
+	})
+})
 
 app.listen(PORT, () => console.log(`listening on port ${PORT}`));
