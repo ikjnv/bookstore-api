@@ -56,7 +56,7 @@ app.post("/v1/books", upload.single('picture'), function(req, res) {
 		if(err) {
 			res.json(err);
 		} else {
-			res.json({ status: 200, data: data });
+			res.send("Successfully created!");
 		}
 	});
 });
