@@ -18,7 +18,7 @@ var upload = multer({
 const PORT = process.env.PORT || 8000;
 const Book = require("./models/Book");
 
-mongoose.connect("mongodb://localhost:27017/bookData", {useNewUrlParser: true, useUnifiedTopology: true})
+mongoose.connect("mongodb://localhost:27017/bookstore", {useNewUrlParser: true, useUnifiedTopology: true})
 	.then(() => console.log ('Database Connection Success'))
 	.catch(err => console.log(err));
 
@@ -29,15 +29,29 @@ app.get("/", function(req, res) {
 	res.send("Welcome to our bookstore library!");
 });
 
-app.get("/v1/books", function(req, res) {
-	Book.find({})
-		.exec(function(err, data) {
-			if(err) {
-				res.send(err);
-			} else {
-				res.json({status: 200, data: data});
-			}
-		})
+//app.get("/v1/books", function(req, res) {
+//	Book.find({})
+//		.exec(function(err, data) {
+//			if(err) {
+//				res.send(err);
+//			} else {
+//				res.json({status: 200, data: data});
+//			}
+//		})
+//});
+
+app.get("/v1/books", async(req, res) => {
+	try {
+		const total = await Book.countDocuments({});
+		const limit = 2;
+		const page = parseInt(req.query.page) || 0;
+		const books = await Book.find()
+			.limit(limit)
+			.skip(limit * page);
+		res.status(200).json({ totalPages: Math.ceil(total / limit), books});
+	} catch(err) {
+		console.log(err);
+	}
 });
 
 app.get("/v1/books/:id", function(req, res) {
@@ -56,7 +70,7 @@ app.post("/v1/books", upload.single('picture'), function(req, res) {
 		if(err) {
 			res.json(err);
 		} else {
-			res.json({ status: 200, data: data });
+			res.send("Successfully created!");
 		}
 	});
 });
