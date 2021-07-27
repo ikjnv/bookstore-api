@@ -18,7 +18,7 @@ var upload = multer({
 const PORT = process.env.PORT || 8000;
 const Book = require("./models/Book");
 
-mongoose.connect("mongodb://localhost:27017/bookData", {useNewUrlParser: true, useUnifiedTopology: true})
+mongoose.connect("mongodb://localhost:27017/bookstore", {useNewUrlParser: true, useUnifiedTopology: true})
 	.then(() => console.log ('Database Connection Success'))
 	.catch(err => console.log(err));
 
