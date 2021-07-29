@@ -1,13 +1,12 @@
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
-const bodyParser = require("body-parser");
 const cors = require("cors");
 const multer = require("multer");
-const path = require('path');
-const morgan = require("morgan");
+const path = require("path");
+const bodyParser = require("body-parser");
 
-// multer file upload configs
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 var upload = multer({
 	storage: multer.diskStorage({
 		destination: function(req, file, cb) {
@@ -33,36 +32,9 @@ app.use(cors());
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.get("/v1/books", bookController.all);
-
-app.get("/v1/books/:id", function(req, res) {
-	Book.findById({ _id: req.params.id }, function(err, data) {
-		if(err) {
-			res.json(err);
-		} else {
-			res.json({ status: 200, data: data });
-		}
-	});
-});
-
-app.use(bodyParser.json());
-app.post("/v1/books", upload.single('picture'), function(req, res) {
-	Book.create({ title: req.body.title, author: req.body.author, description: req.body.description, category: req.body.category, img_path: req.file.path}, function(err, data) {
-		if(err) {
-			res.json(err);
-		} else {
-			res.send("Successfully created!");
-		}
-	});
-});
-
-app.delete("/v1/books/:id", function(req, res) {
-	Book.findByIdAndDelete({ _id: req.params.id }, function(err, data) {
-		if(err) {
-			res.json(err);
-		} else {
-			res.json({ status: 200, message: "Deleted successfully", data: data });
-		}
-	})
-});
+app.get("/v1/books/:id", bookController.byId);
+app.use(bodyParser());
+app.post("/v1/books", upload.single('picture'), bookController.create);
+app.delete("/v1/books/:id", bookController.delete);
 
 app.listen(PORT, () => console.log(`listening on port ${PORT}`));
